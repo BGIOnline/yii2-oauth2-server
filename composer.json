@@ -1,5 +1,5 @@
 {
-    "name": "BGIOnline/yii2-oauth2-server",
+    "name": "bgi-online/yii2-oauth2-server",
     "description": "OAuth2 Server for PHP",
     "keywords": ["yii", "extension", "module", "oauth", "oauth2"],
     "homepage": "https://github.com/BGIOnline/yii2-oauth2-server",
