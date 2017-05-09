@@ -10,7 +10,7 @@
     },
     "require": {
         "yiisoft/yii2": "*",
-        "BGIOnline/oauth2-server-php": "v1.3"
+        "bgi-online/oauth2-server-php": "v1.3"
     },
     "autoload": {
         "psr-4": {
