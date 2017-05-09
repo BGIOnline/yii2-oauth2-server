@@ -9,10 +9,11 @@ use Yii;
  *
  * @property string $authorization_code
  * @property string $client_id
- * @property integer $user_id
+ * @property string $user_id
  * @property string $redirect_uri
  * @property string $expires
  * @property string $scope
+ * @property string $file_id
  *
  * @property OauthClients $client
  */
@@ -33,12 +34,11 @@ class OauthAuthorizationCodes extends \yii\db\ActiveRecord
     {
         return [
             [['authorization_code', 'client_id', 'redirect_uri', 'expires'], 'required'],
-            [['user_id'], 'integer'],
             [['expires'], 'safe'],
-            [['authorization_code'], 'string', 'max' => 40],
+            [['authorization_code','user_id'], 'string', 'max' => 40],
             [['client_id'], 'string', 'max' => 32],
             [['redirect_uri'], 'string', 'max' => 1000],
-            [['scope'], 'string', 'max' => 2000]
+            [['scope','file_id'], 'string', 'max' => 2000]
         ];
     }
 
@@ -54,6 +54,7 @@ class OauthAuthorizationCodes extends \yii\db\ActiveRecord
             'redirect_uri' => 'Redirect Uri',
             'expires' => 'Expires',
             'scope' => 'Scope',
+        	'file_id'=>'File ID',
         ];
     }
 

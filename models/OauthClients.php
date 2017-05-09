@@ -12,7 +12,7 @@ use Yii;
  * @property string $redirect_uri
  * @property string $grant_types
  * @property string $scope
- * @property integer $user_id
+ * @property string $user_id
  *
  * @property OauthAccessTokens[] $oauthAccessTokens
  * @property OauthAuthorizationCodes[] $oauthAuthorizationCodes
@@ -35,7 +35,7 @@ class OauthClients extends \yii\db\ActiveRecord
     {
         return [
             [['client_id', 'client_secret', 'redirect_uri', 'grant_types'], 'required'],
-            [['user_id'], 'integer'],
+            [['user_id'], 'string', 'max' => 40],
             [['client_id', 'client_secret'], 'string', 'max' => 32],
             [['redirect_uri'], 'string', 'max' => 1000],
             [['grant_types'], 'string', 'max' => 100],

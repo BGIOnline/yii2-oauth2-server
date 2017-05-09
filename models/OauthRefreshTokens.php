@@ -9,9 +9,10 @@ use Yii;
  *
  * @property string $refresh_token
  * @property string $client_id
- * @property integer $user_id
+ * @property string $user_id
  * @property string $expires
  * @property string $scope
+ * @property string $file_id
  *
  * @property OauthClients $client
  */
@@ -32,11 +33,10 @@ class OauthRefreshTokens extends \yii\db\ActiveRecord
     {
         return [
             [['refresh_token', 'client_id', 'expires'], 'required'],
-            [['user_id'], 'integer'],
             [['expires'], 'safe'],
-            [['refresh_token'], 'string', 'max' => 40],
+            [['refresh_token','user_id'], 'string', 'max' => 40],
             [['client_id'], 'string', 'max' => 32],
-            [['scope'], 'string', 'max' => 2000]
+            [['scope','file_id'], 'string', 'max' => 2000]
         ];
     }
 
@@ -51,6 +51,7 @@ class OauthRefreshTokens extends \yii\db\ActiveRecord
             'user_id' => 'User ID',
             'expires' => 'Expires',
             'scope' => 'Scope',
+        	'file_id'=>'File ID',
         ];
     }
 

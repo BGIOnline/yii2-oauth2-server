@@ -11,20 +11,26 @@ use yii\i18n\PhpMessageSource;
  * ```php
  * 'oauth2' => [
  *     'class' => 'filsh\yii2\oauth2server\Module',
- *     'tokenParamName' => 'accessToken',
- *     'tokenAccessLifetime' => 3600 * 24,
+ *     'options' => [
+ *         'token_param_name' => 'accessToken',
+ *         'access_lifetime' => 3600
+ *     ],
  *     'storageMap' => [
- *         'user_credentials' => 'common\models\User',
+ *         'user_credentials' => 'common\models\User'
  *     ],
  *     'grantTypes' => [
+ *         'client_credentials' => [
+ *             'class' => '\OAuth2\GrantType\ClientCredentials',
+ *             'allow_public_clients' => false
+ *         ],
  *         'user_credentials' => [
- *             'class' => 'OAuth2\GrantType\UserCredentials',
+ *             'class' => '\OAuth2\GrantType\UserCredentials'
  *         ],
  *         'refresh_token' => [
- *             'class' => 'OAuth2\GrantType\RefreshToken',
+ *             'class' => '\OAuth2\GrantType\RefreshToken',
  *             'always_issue_new_refresh_token' => true
  *         ]
- *     ]
+ *     ],
  * ]
  * ```
  */
@@ -42,20 +48,16 @@ class Module extends \yii\base\Module
      */
     public $storageMap = [];
     
-    /**
-     * @var array GrantTypes collection
-     */
+    
+    
+    
+    public $options = [];
+    
     public $grantTypes = [];
     
-    /**
-     * @var string name of access token parameter
-     */
-    public $tokenParamName;
-    
-    /**
-     * @var type max access lifetime
-     */
-    public $tokenAccessLifetime;
+    private $_server;
+
+    private $_request;
     
     /**
      * @inheritdoc
@@ -67,70 +69,67 @@ class Module extends \yii\base\Module
     }
     
     /**
-     * Gets Oauth2 Server
-     * 
-     * @return \filsh\yii2\oauth2server\Server
-     * @throws \yii\base\InvalidConfigException
+     * Get oauth2 server instance
+     * @param type $force
+     * @return \OAuth2\Server
      */
-    public function getServer()
+    public function getServer($force = false)
     {
-        if(!$this->has('server')) {
+        if($this->_server === null || $force === true) {
             $storages = [];
-            foreach(array_keys($this->storageMap) as $name) {
+            foreach($this->storageMap as $name => $value) {
                 $storages[$name] = \Yii::$container->get($name);
             }
+            $server = new \OAuth2\Server($storages, $this->options);
             
-            $grantTypes = [];
             foreach($this->grantTypes as $name => $options) {
                 if(!isset($storages[$name]) || empty($options['class'])) {
                     throw new \yii\base\InvalidConfigException('Invalid grant types configuration.');
                 }
-
+                
                 $class = $options['class'];
                 unset($options['class']);
-
+                
                 $reflection = new \ReflectionClass($class);
                 $config = array_merge([0 => $storages[$name]], [$options]);
 
                 $instance = $reflection->newInstanceArgs($config);
-                $grantTypes[$name] = $instance;
+                $server->addGrantType($instance);
             }
             
-            $server = \Yii::$container->get(Server::className(), [
-                $this,
-                $storages,
-                [
-                    'token_param_name' => $this->tokenParamName,
-                    'access_lifetime' => $this->tokenAccessLifetime,
-                    /** add more ... */
-                ],
-                $grantTypes
-            ]);
-
-            $this->set('server', $server);
+            $this->_server = $server;
         }
-        return $this->get('server');
+        return $this->_server;
     }
     
-    public function getRequest()
+    /**
+     * Get oauth2 request instance from global variables
+     * @return \OAuth2\Request
+     */
+    public function getRequest($force = false)
     {
-        if(!$this->has('request')) {
-            $this->set('request', Request::createFromGlobals());
-        }
-        return $this->get('request');
+        if ($this->_request === null || $force) {
+            $this->_request = \OAuth2\Request::createFromGlobals();
+        };
+        return $this->_request;
     }
     
+    /**
+     * Get oauth2 response instance
+     * @return \OAuth2\Response
+     */
     public function getResponse()
     {
-        if(!$this->has('response')) {
-            $this->set('response', new Response());
-        }
-        return $this->get('response');
+        return new \OAuth2\Response();
     }
-
+    
+    
+    
+    
+    
+    
     /**
      * Register translations for this module
-     * 
      * @return array
      */
     public function registerTranslations()
@@ -143,15 +142,6 @@ class Module extends \yii\base\Module
         }
     }
     
-    /**
-     * Translate module message
-     * 
-     * @param string $category
-     * @param string $message
-     * @param array $params
-     * @param string $language
-     * @return string
-     */
     public static function t($category, $message, $params = [], $language = null)
     {
         return Yii::t('modules/oauth2/' . $category, $message, $params, $language);

@@ -5,13 +5,9 @@ namespace filsh\yii2\oauth2server\filters;
 use Yii;
 use yii\base\Controller;
 use filsh\yii2\oauth2server\Module;
-use filsh\yii2\oauth2server\exceptions\HttpException;
 
 class ErrorToExceptionFilter extends \yii\base\Behavior
 {
-    /**
-     * @inheritdoc
-     */
     public function events()
     {
         return [Controller::EVENT_AFTER_ACTION => 'afterAction'];
@@ -31,16 +27,13 @@ class ErrorToExceptionFilter extends \yii\base\Behavior
             $isValid = $response->isInformational() || $response->isSuccessful() || $response->isRedirection();
         }
         if(!$isValid) {
-            throw new HttpException($response->getStatusCode(), $this->getErrorMessage($response), $response->getParameter('error_uri'));
+            $status = $response->getStatusCode();
+            // TODO: необходимо также пробрасывать error_uri
+            $message = Module::t('common', $response->getParameter('error_description'));
+            if($message === null) {
+                $message = Module::t('common', 'An internal server error occurred.');
+            }
+            throw new \yii\web\HttpException($status, $message);
         }
-    }
-    
-    protected function getErrorMessage(\OAuth2\Response $response)
-    {
-        $message = Module::t('common', $response->getParameter('error_description'));
-        if($message === null) {
-            $message = Module::t('common', 'An internal server error occurred.');
-        }
-        return $message;
     }
 }
